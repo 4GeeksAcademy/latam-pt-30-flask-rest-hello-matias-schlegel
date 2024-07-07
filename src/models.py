@@ -10,7 +10,7 @@ class User(db.Model):
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
     favorites = db.relationship('Favorite', backref='user')
 
-    def serialize(self): #no entendi mucho para que sirve
+    def serialize(self):
         return {
             "id": self.id,
             "username": self.username,

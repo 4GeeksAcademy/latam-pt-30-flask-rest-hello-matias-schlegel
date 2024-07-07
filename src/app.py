@@ -53,11 +53,11 @@ def get_people():
     people = People.query.all()
     return jsonify([{'id': person.id, 'name': person.name} for person in people])
     
-    
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_people_id(people_id):
     person = People.query.get_or_404(people_id)
     return jsonify({'id': person.id, 'name': person.name})
+
 
 
 
@@ -67,7 +67,6 @@ def get_people_id(people_id):
 def get_planet():
     planets = Planet.query.all()
     return jsonify([{'id': planet.id, 'name': planet.name} for planet in planets])
-    
     
 @app.route('/planet/<int:planet_id>', methods=['GET'])
 def get_planet_id(planet_id):
@@ -92,7 +91,7 @@ def get_users():
             for user in users
         ]
     )
-    
+ 
 @app.route('/users/favorites', methods=['GET'])
 def get_user_favorite(user_id):
     user_id = 1 
@@ -100,6 +99,7 @@ def get_user_favorite(user_id):
     # favorite.serialize() se llama en cada objeto Favorite para convertirlo en un diccionario JSON
     #  user.favorites devuelve una lista de objetos Favorite que pertenecen al usuario.
     return jsonify([favorite.serialize() for favorite in user.favorites]) 
+
 
 
 
@@ -120,6 +120,9 @@ def get_favorite_people(people_id):
     db.session.add(favorite) # Añade el nuevo objeto favorite a la sesión de la base de datos.
     db.session.commit() # Guarda los cambios en la base de datos, lo que significa que el nuevo favorito se inserta en la tabla 
     return jsonify(favorite.serialize()), 201 # Este es el código de estado HTTP para "Created"
+
+
+
 
 
 
@@ -145,9 +148,12 @@ def delete_favorite_people(people_id):
     return jsonify({"message": "favorito eliminado"}), 200
 
 
-@app.route('/create_users', methods=['POST'])
+
+
+
+@app.route('/user', methods=['POST'])
 def create_user():
-    data = request.get_json()  # Obtener los datos JSON del cuerpo de la solicitud
+    data = request.json  # Obtener los datos JSON del cuerpo de la solicitud
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
@@ -157,8 +163,15 @@ def create_user():
         return jsonify({"error": "Username, email, and password are required"}), 400
 
     new_user = User(username=username, email=email, password=password, is_active=is_active)
-    db.session.add(new_user)
-    db.session.commit()
+
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+    except Exception as error:
+        print(error)
+        db.session.rollback()
+        return jsonify({"message": "DB error"})
+
 
     return jsonify({
         "id": new_user.id,
@@ -166,6 +179,11 @@ def create_user():
         "email": new_user.email,
         "is_active": new_user.is_active
     }), 201
+
+
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
